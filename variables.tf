@@ -55,7 +55,7 @@ variable "enable_multi_az" {
 variable "db_instance_class" {
   description = "RDS instance class"
   type        = string
-  default     = "db.t3.medium"
+  default     = "db.t3.micro"
 }
 
 variable "db_name" {
@@ -81,4 +81,66 @@ variable "state_bucket_name" {
   description = "S3 bucket name for Terraform state"
   type        = string
   default     = "my-terraform-state-bucket"
+}
+
+variable "ecs_desired_count" {
+  description = "Number of ECS tasks to run (set to 0 before pushing the image)"
+  type        = number
+  default     = 0
+}
+
+variable "ollama_image_tag" {
+  description = "Tag for the Ollama ECR image"
+  type        = string
+  default     = "v1"
+}
+
+# ------------------------------------------------------------------------------
+# CI/CD Variables
+# ------------------------------------------------------------------------------
+
+variable "deploy_cicd" {
+  description = "Deploy CI/CD pipelines (requires github_owner and github_repo)"
+  type        = bool
+  default     = false
+}
+
+variable "codestar_connection_arn" {
+  description = "ARN of an existing CodeStar connection to GitHub (leave empty to create a new one)"
+  type        = string
+  default     = ""
+}
+
+variable "github_owner" {
+  description = "GitHub repository owner"
+  type        = string
+  default     = ""
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+  default     = ""
+}
+
+variable "github_branch" {
+  description = "GitHub branch to track for CI/CD"
+  type        = string
+  default     = "main"
+}
+
+variable "alert_email" {
+  description = "Email address for CloudWatch alarm notifications (leave empty to skip)"
+  type        = string
+  default     = ""
+}
+
+# ------------------------------------------------------------------------------
+# Lambda Variables
+# ------------------------------------------------------------------------------
+
+variable "deploy_lambda" {
+  description = "Deploy Lambda health monitor (run lambda/build_layer.ps1 first)"
+  type        = bool
+  default     = false
 }

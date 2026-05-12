@@ -27,3 +27,7 @@ terraform.rc
 # IDE
 .vscode/
 .idea/
+
+# Lambda build artifacts
+lambda/*.zip
+lambda/layer/

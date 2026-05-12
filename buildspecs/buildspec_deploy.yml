@@ -1,0 +1,12 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - wget -q https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip
+      - unzip -o terraform_1.9.8_linux_amd64.zip -d /usr/local/bin/
+      - terraform --version
+  build:
+    commands:
+      - terraform init -input=false
+      - terraform apply -input=false -auto-approve

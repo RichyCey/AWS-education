@@ -12,10 +12,6 @@ resource "aws_vpc" "main" {
   }
 }
 
-# ------------------------------------------------------------------------------
-# Internet Gateway
-# ------------------------------------------------------------------------------
-
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
@@ -23,10 +19,6 @@ resource "aws_internet_gateway" "main" {
     Name = "${var.project_name}-igw"
   }
 }
-
-# ------------------------------------------------------------------------------
-# Public Subnets
-# ------------------------------------------------------------------------------
 
 resource "aws_subnet" "public" {
   count = length(var.availability_zones)
@@ -42,10 +34,6 @@ resource "aws_subnet" "public" {
   }
 }
 
-# ------------------------------------------------------------------------------
-# Private Application Subnets
-# ------------------------------------------------------------------------------
-
 resource "aws_subnet" "private_app" {
   count = length(var.availability_zones)
 
@@ -58,10 +46,6 @@ resource "aws_subnet" "private_app" {
     Tier = "PrivateApp"
   }
 }
-
-# ------------------------------------------------------------------------------
-# Private Data Subnets
-# ------------------------------------------------------------------------------
 
 resource "aws_subnet" "private_data" {
   count = length(var.availability_zones)
@@ -76,10 +60,6 @@ resource "aws_subnet" "private_data" {
   }
 }
 
-# ------------------------------------------------------------------------------
-# Elastic IP for NAT Gateway
-# ------------------------------------------------------------------------------
-
 resource "aws_eip" "nat" {
   domain = "vpc"
 
@@ -89,10 +69,6 @@ resource "aws_eip" "nat" {
 
   depends_on = [aws_internet_gateway.main]
 }
-
-# ------------------------------------------------------------------------------
-# NAT Gateway (in first public subnet)
-# ------------------------------------------------------------------------------
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
@@ -104,10 +80,6 @@ resource "aws_nat_gateway" "main" {
 
   depends_on = [aws_internet_gateway.main]
 }
-
-# ------------------------------------------------------------------------------
-# Route Tables
-# ------------------------------------------------------------------------------
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
@@ -142,10 +114,6 @@ resource "aws_route_table" "private_data" {
     Name = "${var.project_name}-private-data-rt"
   }
 }
-
-# ------------------------------------------------------------------------------
-# Route Table Associations
-# ------------------------------------------------------------------------------
 
 resource "aws_route_table_association" "public" {
   count = length(var.availability_zones)

@@ -1,0 +1,51 @@
+version: 0.2
+
+env:
+  variables:
+    ECR_REPO_URI: ""
+    TASK_DEF_FAMILY: ""
+
+phases:
+  pre_build:
+    commands:
+      - REGISTRY=$(echo $ECR_REPO_URI | cut -d/ -f1)
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REGISTRY
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:-latest}
+  build:
+    commands:
+      - docker build -t $ECR_REPO_URI:$IMAGE_TAG -f ollama/Dockerfile ollama/
+      - docker push $ECR_REPO_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - printf '{"ImageURI":"%s"}' $ECR_REPO_URI:$IMAGE_TAG > imageDetail.json
+      - |
+        TASK_DEF=$(aws ecs describe-task-definition --task-definition $TASK_DEF_FAMILY \
+          --query '{containerDefinitions:taskDefinition.containerDefinitions,family:taskDefinition.family,taskRoleArn:taskDefinition.taskRoleArn,executionRoleArn:taskDefinition.executionRoleArn,networkMode:taskDefinition.networkMode,requiresCompatibilities:taskDefinition.requiresCompatibilities,cpu:taskDefinition.cpu,memory:taskDefinition.memory}' \
+          --output json)
+        echo $TASK_DEF | python3 -c "
+        import json, sys
+        td = json.load(sys.stdin)
+        for c in td['containerDefinitions']:
+            if c['name'] == 'ollama':
+                c['image'] = '<IMAGE1_NAME>'
+        json.dump(td, sys.stdout, indent=2)
+        " > taskdef.json
+      - |
+        cat > appspec.yaml << 'APPSPECEOF'
+        version: 0.0
+        Resources:
+          - TargetService:
+              Type: AWS::ECS::Service
+              Properties:
+                TaskDefinition: <TASK_DEFINITION>
+                LoadBalancerInfo:
+                  ContainerName: "openwebui"
+                  ContainerPort: 8080
+        APPSPECEOF
+
+artifacts:
+  files:
+    - imageDetail.json
+    - taskdef.json
+    - appspec.yaml

@@ -71,7 +71,7 @@ resource "aws_iam_role_policy" "codebuild" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = aws_secretsmanager_secret.db_credentials.arn
+        Resource = var.db_credentials_secret_arn
       },
       {
         Effect = "Allow"
@@ -85,6 +85,13 @@ resource "aws_iam_role_policy" "codebuild" {
           "ec2:DescribeDhcpOptions",
           "ec2:DescribeVpcs",
           "ec2:CreateNetworkInterfacePermission"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecs:DescribeTaskDefinition"
         ]
         Resource = "*"
       }
@@ -152,7 +159,8 @@ resource "aws_iam_role_policy" "codepipeline" {
           "codedeploy:GetApplicationRevision",
           "codedeploy:GetDeployment",
           "codedeploy:GetDeploymentConfig",
-          "codedeploy:RegisterApplicationRevision"
+          "codedeploy:RegisterApplicationRevision",
+          "codedeploy:GetDeploymentGroup"
         ]
         Resource = "*"
       },
@@ -166,6 +174,23 @@ resource "aws_iam_role_policy" "codepipeline" {
       {
         Effect = "Allow"
         Action = [
+          "sns:Publish"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecs:RegisterTaskDefinition",
+          "ecs:DescribeTaskDefinition",
+          "ecs:DescribeServices",
+          "ecs:UpdateService"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "iam:PassRole"
         ]
         Resource = "*"
@@ -173,7 +198,8 @@ resource "aws_iam_role_policy" "codepipeline" {
           StringEqualsIfExists = {
             "iam:PassedToService" = [
               "codedeploy.amazonaws.com",
-              "codebuild.amazonaws.com"
+              "codebuild.amazonaws.com",
+              "ecs-tasks.amazonaws.com"
             ]
           }
         }
@@ -210,6 +236,11 @@ resource "aws_iam_role" "codedeploy" {
 resource "aws_iam_role_policy_attachment" "codedeploy" {
   role       = aws_iam_role.codedeploy.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+}
+
+resource "aws_iam_role_policy_attachment" "codedeploy_ecs" {
+  role       = aws_iam_role.codedeploy.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS"
 }
 
 resource "aws_iam_role_policy" "codedeploy_extra" {
@@ -271,4 +302,126 @@ resource "aws_iam_role_policy" "codedeploy_extra" {
       }
     ]
   })
+}
+
+# ------------------------------------------------------------------------------
+# ECS Task Execution Role
+# ------------------------------------------------------------------------------
+
+resource "aws_iam_role" "ecs_task_execution" {
+  name = "${var.project_name}-ecs-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.project_name}-ecs-execution-role"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
+  role       = aws_iam_role.ecs_task_execution.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy" "ecs_execution_secrets" {
+  name = "${var.project_name}-ecs-execution-secrets"
+  role = aws_iam_role.ecs_task_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = var.db_credentials_secret_arn
+      }
+    ]
+  })
+}
+
+# ------------------------------------------------------------------------------
+# ECS Task Role
+# ------------------------------------------------------------------------------
+
+resource "aws_iam_role" "ecs_task" {
+  name = "${var.project_name}-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.project_name}-ecs-task-role"
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task" {
+  name = "${var.project_name}-ecs-task-policy"
+  role = aws_iam_role.ecs_task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "rds-db:connect"
+        ]
+        Resource = "arn:aws:rds-db:${var.aws_region}:${data.aws_caller_identity.current.account_id}:dbuser:${var.rds_resource_id}/${var.db_username}"
+      }
+    ]
+  })
+}
+
+# ------------------------------------------------------------------------------
+# Terraform CodeBuild Role (for infrastructure pipeline)
+# Note: Needs broad permissions since it runs terraform apply
+# ------------------------------------------------------------------------------
+
+resource "aws_iam_role" "terraform_codebuild" {
+  name = "${var.project_name}-terraform-codebuild-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "codebuild.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.project_name}-terraform-codebuild-role"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "terraform_codebuild_admin" {
+  role       = aws_iam_role.terraform_codebuild.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
