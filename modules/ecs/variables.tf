@@ -49,3 +49,9 @@ variable "ollama_image_tag" {
 variable "ecs_desired_count" {
   type = number
 }
+
+variable "ecs_max_count" {
+  description = "Maximum number of ECS tasks for auto-scaling"
+  type        = number
+  default     = 4
+}

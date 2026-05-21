@@ -62,6 +62,7 @@ module "ecs" {
   ecr_repository_url         = module.ecr.repository_url
   ollama_image_tag           = var.ollama_image_tag
   ecs_desired_count          = var.ecs_desired_count
+  ecs_max_count              = var.ecs_max_count
 }
 
 module "monitoring" {

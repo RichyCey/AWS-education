@@ -15,7 +15,23 @@ phases:
   build:
     commands:
       - docker build -t $ECR_REPO_URI:$IMAGE_TAG -f ollama/Dockerfile ollama/
+      - docker tag $ECR_REPO_URI:$IMAGE_TAG $ECR_REPO_URI:latest
       - docker push $ECR_REPO_URI:$IMAGE_TAG
+      - docker push $ECR_REPO_URI:latest
+      - echo "Waiting for ECR image scan results..."
+      - aws ecr wait image-scan-complete --repository-name $(echo $ECR_REPO_URI | cut -d/ -f2) --image-id imageTag=$IMAGE_TAG --region $AWS_DEFAULT_REGION || true
+      - |
+        SCAN_FINDINGS=$(aws ecr describe-image-scan-findings \
+          --repository-name $(echo $ECR_REPO_URI | cut -d/ -f2) \
+          --image-id imageTag=$IMAGE_TAG \
+          --region $AWS_DEFAULT_REGION \
+          --query 'imageScanFindings.findingSeverityCounts' --output json 2>/dev/null || echo '{}')
+        echo "Security Scan Results: $SCAN_FINDINGS"
+        CRITICAL=$(echo $SCAN_FINDINGS | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('CRITICAL',0))" 2>/dev/null || echo "0")
+        if [ "$CRITICAL" -gt "0" ]; then
+          echo "ERROR: $CRITICAL critical vulnerabilities found. Failing build."
+          exit 1
+        fi
   post_build:
     commands:
       - printf '{"ImageURI":"%s"}' $ECR_REPO_URI:$IMAGE_TAG > imageDetail.json

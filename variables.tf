@@ -95,6 +95,12 @@ variable "ollama_image_tag" {
   default     = "v1"
 }
 
+variable "ecs_max_count" {
+  description = "Maximum number of ECS tasks for auto-scaling"
+  type        = number
+  default     = 4
+}
+
 # ------------------------------------------------------------------------------
 # CI/CD Variables
 # ------------------------------------------------------------------------------
