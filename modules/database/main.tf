@@ -29,16 +29,16 @@ resource "aws_db_instance" "main" {
   username = var.db_username
   password = random_password.db_password.result
 
-  multi_az            = var.enable_multi_az
-  db_subnet_group_name = aws_db_subnet_group.main.name
+  multi_az               = var.enable_multi_az
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [var.rds_sg_id]
 
   backup_retention_period = 1
   backup_window           = "03:00-04:00"
   maintenance_window      = "Mon:04:00-Mon:05:00"
 
-  skip_final_snapshot       = true
-  deletion_protection       = false
+  skip_final_snapshot = true
+  deletion_protection = false
 
   performance_insights_enabled = false
 
@@ -64,8 +64,8 @@ resource "aws_secretsmanager_secret_policy" "db_credentials" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowECSTaskExecutionRole"
-        Effect    = "Allow"
+        Sid    = "AllowECSTaskExecutionRole"
+        Effect = "Allow"
         Principal = {
           AWS = var.ecs_task_execution_role_arn
         }
@@ -73,8 +73,8 @@ resource "aws_secretsmanager_secret_policy" "db_credentials" {
         Resource = aws_secretsmanager_secret.db_credentials.arn
       },
       {
-        Sid       = "AllowCodeBuildRole"
-        Effect    = "Allow"
+        Sid    = "AllowCodeBuildRole"
+        Effect = "Allow"
         Principal = {
           AWS = var.codebuild_role_arn
         }
