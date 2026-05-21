@@ -1,5 +1,14 @@
 version: 0.2
 
+env:
+  variables:
+    TF_VAR_deploy_cicd: "true"
+    TF_VAR_ecs_desired_count: "2"
+    TF_VAR_ecs_max_count: "4"
+    TF_VAR_github_owner: "RichyCey"
+    TF_VAR_github_repo: "AWS-education"
+    TF_VAR_github_branch: "master"
+
 phases:
   install:
     commands:

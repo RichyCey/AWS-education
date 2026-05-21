@@ -15,9 +15,7 @@ phases:
   build:
     commands:
       - docker build -t $ECR_REPO_URI:$IMAGE_TAG -f ollama/Dockerfile ollama/
-      - docker tag $ECR_REPO_URI:$IMAGE_TAG $ECR_REPO_URI:latest
       - docker push $ECR_REPO_URI:$IMAGE_TAG
-      - docker push $ECR_REPO_URI:latest
       - echo "Waiting for ECR image scan results..."
       - aws ecr wait image-scan-complete --repository-name $(echo $ECR_REPO_URI | cut -d/ -f2) --image-id imageTag=$IMAGE_TAG --region $AWS_DEFAULT_REGION || true
       - |
