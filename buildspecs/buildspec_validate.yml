@@ -16,7 +16,7 @@ phases:
       - wget -q https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip
       - unzip -o terraform_1.9.8_linux_amd64.zip -d /usr/local/bin/
       - terraform --version
-      - pip install psycopg2-binary -t lambda/layer/python --quiet
+      - pip install --platform manylinux2014_x86_64 --only-binary=:all: --implementation cp --python-version 3.13 psycopg2-binary -t lambda/layer/python --quiet
       - cd lambda/layer && zip -r ../psycopg2_layer.zip python -x '*.pyc' && cd ../..
   pre_build:
     commands:
