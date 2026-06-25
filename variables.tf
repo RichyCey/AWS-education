@@ -86,7 +86,7 @@ variable "state_bucket_name" {
 variable "ecs_desired_count" {
   description = "Number of ECS tasks to run (set to 0 before pushing the image)"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 variable "ollama_image_tag" {

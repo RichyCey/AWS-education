@@ -108,6 +108,10 @@ resource "aws_lb_listener" "http" {
     target_group_arn = aws_lb_target_group.openwebui_green.arn
   }
 
+  lifecycle {
+    ignore_changes = [default_action]
+  }
+
   tags = {
     Name = "${var.project_name}-http-listener"
   }
@@ -122,6 +126,10 @@ resource "aws_lb_listener" "test" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.openwebui_green.arn
+  }
+
+  lifecycle {
+    ignore_changes = [default_action]
   }
 
   tags = {
