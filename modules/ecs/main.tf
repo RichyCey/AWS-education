@@ -105,7 +105,7 @@ resource "aws_lb_listener" "http" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.openwebui.arn
+    target_group_arn = aws_lb_target_group.openwebui_green.arn
   }
 
   tags = {
@@ -121,7 +121,7 @@ resource "aws_lb_listener" "test" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.openwebui.arn
+    target_group_arn = aws_lb_target_group.openwebui_green.arn
   }
 
   tags = {
@@ -253,7 +253,7 @@ resource "aws_ecs_service" "app" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.openwebui.arn
+    target_group_arn = aws_lb_target_group.openwebui_green.arn
     container_name   = "openwebui"
     container_port   = 8080
   }
