@@ -269,7 +269,7 @@ resource "aws_ecs_service" "app" {
   depends_on = [aws_lb_listener.http]
 
   lifecycle {
-    ignore_changes = [task_definition, load_balancer, desired_count]
+    ignore_changes = [task_definition, load_balancer]
   }
 
   tags = {
