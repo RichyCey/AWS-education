@@ -84,7 +84,7 @@ variable "state_bucket_name" {
 }
 
 variable "ecs_desired_count" {
-  description = "Number of ECS tasks to run (set to 0 before pushing the image)"
+  description = "Number of ECS tasks to run"
   type        = number
   default     = 1
 }
@@ -108,7 +108,7 @@ variable "ecs_max_count" {
 variable "deploy_cicd" {
   description = "Deploy CI/CD pipelines (requires github_owner and github_repo)"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "codestar_connection_arn" {
@@ -120,25 +120,25 @@ variable "codestar_connection_arn" {
 variable "github_owner" {
   description = "GitHub repository owner"
   type        = string
-  default     = ""
+  default     = "RichyCey"
 }
 
 variable "github_repo" {
   description = "GitHub repository name"
   type        = string
-  default     = ""
+  default     = "AWS-education"
 }
 
 variable "github_branch" {
   description = "GitHub branch to track for CI/CD"
   type        = string
-  default     = "main"
+  default     = "master"
 }
 
 variable "alert_email" {
   description = "Email address for CloudWatch alarm notifications (leave empty to skip)"
   type        = string
-  default     = ""
+  default     = "rogommy.sw@gmail.com"
 }
 
 # ------------------------------------------------------------------------------
@@ -146,7 +146,7 @@ variable "alert_email" {
 # ------------------------------------------------------------------------------
 
 variable "deploy_lambda" {
-  description = "Deploy Lambda health monitor (run lambda/build_layer.ps1 first)"
+  description = "Deploy Lambda health monitor"
   type        = bool
-  default     = false
+  default     = true
 }

@@ -1,1 +1,1 @@
-{"statusCode": 200, "body": "{\"alb_healthy\": false, \"alb_response_ms\": 0, \"db_healthy\": true, \"active_connections\": 5, \"db_size_bytes\": 9821543}"}
+{"statusCode": 200, "body": "{\"alb_healthy\": true, \"alb_response_ms\": 368.4539794921875, \"db_healthy\": true, \"active_connections\": 5, \"db_size_bytes\": 9993575}"}
