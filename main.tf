@@ -113,6 +113,9 @@ module "lambda" {
   lambda_sg_id              = module.security.lambda_sg_id
   alb_dns_name              = module.ecs.alb_dns_name
   db_credentials_secret_arn = module.database.db_credentials_secret_arn
+  sns_topic_arn             = module.monitoring.sns_topic_arn
+  ecs_cluster_name          = module.ecs.cluster_name
+  ecs_service_name          = module.ecs.service_name
 }
 
 

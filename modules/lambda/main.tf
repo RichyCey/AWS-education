@@ -49,6 +49,19 @@ resource "aws_iam_role_policy" "lambda" {
         Effect   = "Allow"
         Action   = ["elasticloadbalancing:DescribeTargetHealth"]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecs:ListTasks",
+          "ecs:DescribeTasks"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = var.sns_topic_arn
       }
     ]
   })
@@ -95,9 +108,13 @@ resource "aws_lambda_function" "health_monitor" {
 
   environment {
     variables = {
-      ALB_DNS_NAME  = var.alb_dns_name
-      DB_SECRET_ARN = var.db_credentials_secret_arn
-      PROJECT_NAME  = var.project_name
+      ALB_DNS_NAME           = var.alb_dns_name
+      DB_SECRET_ARN          = var.db_credentials_secret_arn
+      PROJECT_NAME           = var.project_name
+      SNS_TOPIC_ARN          = var.sns_topic_arn
+      ECS_CLUSTER_NAME       = var.ecs_cluster_name
+      ECS_SERVICE_NAME       = var.ecs_service_name
+      DB_ALLOCATED_STORAGE_GB = tostring(var.db_allocated_storage_gb)
     }
   }
 
